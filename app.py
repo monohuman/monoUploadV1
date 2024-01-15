@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, send_file, jsonify
+from flask import Flask, render_template, request, send_file
 import os
-import uuid
+import random
+import string
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -9,24 +10,32 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 
 file_code_map = {}
 
-@app.route('/', methods=['POST', 'GET'])
+def generate_code(length=5):
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))
+
+@app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    if 'fileToUpload' not in request.files:
-        return 'No file part', 400
-    file = request.files['fileToUpload']
-    if file.filename == '':
-        return 'No selected file', 400
-    if file:
-        filename = secure_filename(file.filename)
-        file_id = str(uuid.uuid4())  # Generate a unique code
-        temp_file_path = os.path.join(TEMP_DIR, file_id)
-        file.save(temp_file_path)
-        file_code_map[file_id] = filename
-        return jsonify({'code': file_id}), 200  # Return the code in JSON format
+    response_html = ""
+    for file_key in request.files:
+        file = request.files[file_key]
+        if file.filename == '':
+            response_html += "<p>No selected file</p>"
+            continue
+        if file:
+            filename = secure_filename(file.filename)
+            file_code = generate_code()
+            while file_code in file_code_map:  # Ensure uniqueness
+                file_code = generate_code()
+            temp_file_path = os.path.join(TEMP_DIR, file_code)
+            file.save(temp_file_path)
+            file_code_map[file_code] = filename
+            response_html += f"File uploaded.<br>Download code: {file_code}</p>"
+    return response_html if response_html else "<p>Failed to upload files</p>", 200
 
 @app.route('/download/<code>', methods=['GET'])
 def download(code):

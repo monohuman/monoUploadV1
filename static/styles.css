@@ -22,6 +22,8 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
+    transform: scale(1.5);
+    overflow: hidden;
 }
 
 h3 { 
@@ -53,6 +55,50 @@ form {
     margin-bottom: 0px;
 }
 
+/* Existing CSS remains the same */
+
+.downloadCodeBox {
+    font-family: 'HelveticaRegular';
+    font-size: 18px;
+    text-align: center;
+    cursor: pointer;
+    padding: 10px;
+    border: 3px solid #ffc838;
+    width: 230px;
+    border-radius: 10px 10px 0 0;
+    background: none;
+    color: #ffc838;
+    outline: none;
+}
+
+/* Styling for the download button */
+button {
+    font-family: 'HelveticaRegular';
+    font-size: 15px;
+    text-align: center;
+    cursor: pointer;
+    padding: 5px;
+    border: 3px solid #ffc838;
+    width: 111%;
+    border-radius: 0 0 10px 10px;
+    background-color: #ffffff00; /* Transparent background like the unloaded loading bar */
+    color: #ffc838; /* Text color */
+    margin-top: 0; /* Aligns with the input box */
+    transition: background-color 0.3s ease;
+    border-top: none;
+}
+
+/* Hover effect for the download button */
+button:hover {
+    background-color: #e6b32d; /* Darker shade for hover effect */
+    color: #0e0d0d;
+}
+
+/* Ensure that the label and button align correctly */
+#downloadForm {
+    width: 230px; /* Match width of upload area and button */
+}
+
 .upload-area:hover {
     background-color: #00000050; /* Darken on hover */
 }
@@ -74,6 +120,7 @@ input[type="file"] {
     overflow: hidden; /* Ensure the inner div doesn't overflow */
     margin-top: 0px;
     box-sizing: border-box;
+    display: block !important;
 }
 
 .loading-progress {

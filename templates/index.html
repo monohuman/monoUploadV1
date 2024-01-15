@@ -5,65 +5,64 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
+    <form enctype="multipart/form-data" id="uploadForm">
         <label for="fileToUpload" class="upload-area">
-            <h3>Select file to upload:</h3>
-            <input type="file" name="fileToUpload" id="fileToUpload" style="display: none;">
+            <h3>Select files to upload:</h3>
+            <input type="file" name="fileToUpload" id="fileToUpload" multiple style="display: none;" onchange="uploadFiles()">
         </label>
-        <div id="loadingBar" class="loading-bar">
+        <div id="loadingBar" class="loading-bar" style="display: none;">
             <div id="loadingProgress" class="loading-progress"></div>
         </div>
+        <div id="uploadStatus"></div>
     </form>
 
-    <form action="/download" method="get" id="downloadForm">
-        <label for="downloadCode">Enter download code:</label>
-        <input type="text" name="downloadCode" id="downloadCode">
-        <button type="button" onclick="startDownload()">Download</button>
+    <form id="downloadForm">
+        <input type="text" name="downloadCode" id="downloadCode" placeholder="Enter download code" class="downloadCodeBox">
+        <button type="button" onclick="startDownload()">Download</button> 
     </form>
 
     <script>
+        function uploadFiles() {
+            var files = document.getElementById('fileToUpload').files;
+            var formData = new FormData();
+            for (var i = 0; i < files.length; i++) {
+                formData.append('file' + i, files[i]);
+            }
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    var percentComplete = (event.loaded / event.total) * 100;
+                    document.getElementById('loadingBar').style.display = 'block';
+                    document.getElementById('loadingProgress').style.width = percentComplete + '%';
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    document.getElementById('uploadStatus').innerHTML = xhr.responseText;
+                } else {
+                    alert('An error occurred during the upload.');
+                }
+                document.getElementById('loadingBar').style.display = 'none';
+                document.getElementById('loadingProgress').style.width = '0%';
+            };
+
+            xhr.send(formData);
+        }
+
         function startDownload() {
             var code = document.getElementById('downloadCode').value;
             if (code) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', '/download/' + code, true);
-    
-                // Show the loading bar
-                var loadingBar = document.getElementById('loadingBar');
-                var loadingProgress = document.getElementById('loadingProgress');
-                loadingBar.style.display = 'block';
-    
-                xhr.responseType = 'blob';
-                xhr.onprogress = function(e) {
-                    if (e.lengthComputable) {
-                        var percentComplete = (e.loaded / e.total) * 100;
-                        loadingProgress.style.width = percentComplete + '%';
-                    }
-                };
-    
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        loadingBar.style.display = 'none';
-                        var blob = new Blob([xhr.response]);
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = code; // You can also retrieve the original file name from the response headers
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        alert('Download complete!');
-                    } else {
-                        alert('Download failed.');
-                    }
-                };
-    
-                xhr.send();
+                window.location.href = '/download/' + code;
             } else {
                 alert('Please enter a download code.');
             }
         }
     </script>
-    
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
